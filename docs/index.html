@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>laconic</title>
+  <meta name="description" content="Claude Code skill. 90% fewer tokens." />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --fg: #e0e0e0;
+      --muted: #777;
+      --accent: #c9a84c;
+      --code-bg: #141420;
+      --border: #222;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Tabs */
+    nav.tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      padding-top: 1.5rem;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    nav.tabs button {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      padding: 0.6rem 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    nav.tabs button:hover { color: var(--fg); }
+    nav.tabs button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .hero {
+      text-align: center;
+      padding: 4rem 1.5rem 4rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .hero img { width: 80px; margin-bottom: 1.5rem; }
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      text-transform: lowercase;
+      color: var(--fg);
+    }
+    .hero .quote {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.8;
+    }
+    .hero .quote strong {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat .label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-top: 0.3rem;
+    }
+
+    .install {
+      text-align: center;
+      margin-top: 3rem;
+    }
+    .install code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-block;
+      transition: border-color 0.2s;
+    }
+    .install code:hover { border-color: var(--accent); }
+    .install .hint {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    section {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+    section h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 600px) {
+      .comparison { grid-template-columns: 1fr; }
+    }
+    .comparison .col h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .comparison .col h3 span {
+      color: var(--accent);
+    }
+    .comparison .col blockquote {
+      font-size: 0.8rem;
+      color: var(--fg);
+      border-left: 2px solid var(--border);
+      padding-left: 0.75rem;
+      line-height: 1.7;
+    }
+    .comparison .col.laconic blockquote {
+      border-left-color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+    th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    td:not(:first-child), th:not(:first-child) {
+      text-align: right;
+    }
+    .positive { color: var(--accent); }
+    .avg td { font-weight: 700; }
+
+    .diff {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      font-size: 0.75rem;
+    }
+    @media (max-width: 600px) {
+      .diff { grid-template-columns: 1fr; }
+    }
+    .diff h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .diff ul {
+      list-style: none;
+      line-height: 2;
+    }
+    .diff li::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    .diff .caveman li::before { background: var(--muted); }
+    .diff .laconic li::before { background: var(--accent); }
+
+    /* Origin tab — markdown rendering */
+    #origin-content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    #origin-content h1 {
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--fg);
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+    #origin-content h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.4rem;
+    }
+    #origin-content h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--fg);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    #origin-content p {
+      margin-bottom: 1rem;
+      color: var(--fg);
+    }
+    #origin-content em { color: var(--muted); }
+    #origin-content strong { color: var(--accent); }
+    #origin-content blockquote {
+      border-left: 2px solid var(--accent);
+      padding-left: 1rem;
+      margin: 1rem 0;
+      color: var(--fg);
+      font-style: italic;
+    }
+    #origin-content blockquote strong {
+      font-style: normal;
+    }
+    #origin-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.75rem;
+    }
+    #origin-content th {
+      text-align: left;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding: 0.4rem 0.5rem;
+    }
+    #origin-content td {
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      padding: 0.4rem 0.5rem;
+    }
+    #origin-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    #origin-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    #origin-content a:hover { text-decoration: underline; }
+    #origin-content ol, #origin-content ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    #origin-content li { margin-bottom: 0.3rem; }
+    #origin-content sup a {
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+    #origin-content code {
+      background: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.78rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <nav class="tabs">
+    <button class="active" onclick="showTab('home')">Home</button>
+    <button onclick="showTab('origin')">Origin</button>
+  </nav>
+
+  <div id="tab-home" class="tab-content active">
+
+    <div class="hero">
+      <img src="https://raw.githubusercontent.com/GabrielBarberini/laconic/main/laconic.png" alt="laconic" />
+      <h1>laconic</h1>
+      <div class="quote">
+        Philip II: "If I invade Laconia, I shall turn you out."<br/>
+        Sparta: <strong>"If."</strong>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">90%</div><div class="label">tokens saved</div></div>
+        <div class="stat"><div class="num">+25pp</div><div class="label">vs caveman</div></div>
+        <div class="stat"><div class="num">0</div><div class="label">facts lost</div></div>
+      </div>
+      <div class="install">
+        <code onclick="navigator.clipboard.writeText('npx skills add GabrielBarberini/laconic')">npx skills add GabrielBarberini/laconic</code>
+        <div class="hint">click to copy</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Before / After</h2>
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:1.5rem; font-style:italic;">
+        "My Express auth middleware is letting expired JWT tokens through. The expiry check uses <code>Date.now()</code> compared to the token's <code>exp</code> field. What's wrong and how do I fix it?"
+      </p>
+      <div class="comparison">
+        <div class="col">
+          <h3>Normal <span>~1,300 tok</span></h3>
+          <blockquote>Explains JWT spec, Unix timestamps vs JavaScript milliseconds, walks through middleware architecture, adds error handling, suggests libraries, and outputs a full refactored file&nbsp;(&hellip;)</blockquote>
+        </div>
+        <div class="col laconic">
+          <h3>Laconic <span>19 tok</span></h3>
+          <blockquote>"<code>exp</code> is in seconds. <code>Date.now()</code> is milliseconds.<br/><code>if (Date.now() / 1000 > payload.exp)</code>"</blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Caveman Benchmark</h2>
+      <table>
+        <tr><th>Task</th><th>Normal</th><th>Laconic</th><th>Saved</th><th>vs Caveman</th></tr>
+        <tr><td>React re-render bug</td><td>885</td><td>68</td><td>92%</td><td class="positive">+5pp</td></tr>
+        <tr><td>Auth middleware fix</td><td>1059</td><td>39</td><td>96%</td><td class="positive">+13pp</td></tr>
+        <tr><td>PostgreSQL pool setup</td><td>2167</td><td>189</td><td>91%</td><td class="positive">+7pp</td></tr>
+        <tr><td>Git rebase vs merge</td><td>996</td><td>95</td><td>90%</td><td class="positive">+32pp</td></tr>
+        <tr><td>Callback to async/await</td><td>494</td><td>62</td><td>87%</td><td class="positive">+65pp</td></tr>
+        <tr><td>Microservices vs monolith</td><td>826</td><td>209</td><td>75%</td><td class="positive">+45pp</td></tr>
+        <tr><td>PR security review</td><td>940</td><td>126</td><td>87%</td><td class="positive">+46pp</td></tr>
+        <tr><td>Docker multi-stage</td><td>2635</td><td>149</td><td>94%</td><td class="positive">+22pp</td></tr>
+        <tr><td>PostgreSQL race condition</td><td>1370</td><td>49</td><td>96%</td><td class="positive">+15pp</td></tr>
+        <tr><td>React error boundary</td><td>4096</td><td>400</td><td>90%</td><td class="positive">+3pp</td></tr>
+        <tr class="avg"><td>Average</td><td>1547</td><td>139</td><td>90%</td><td class="positive">+25pp</td></tr>
+      </table>
+      <p style="font-size:0.65rem; color:var(--muted); margin-top:0.75rem;">
+        Claude Sonnet 4 via Langdock. Median of 3 trials. Range: 75%–96%. Same 10 prompts as Caveman benchmark (avg 64%).
+      </p>
+      <p style="font-size:0.7rem; color:var(--fg); margin-top:1rem; border-left:2px solid var(--accent); padding-left:0.75rem;">
+        Output tokens only;
+      </p>
+    </section>
+
+    <section>
+      <h2>Caveman vs Laconic</h2>
+      <table>
+        <tr><th></th><th>Caveman</th><th>Laconic</th></tr>
+        <tr><td>Tone</td><td>Primitive</td><td>Terse</td></tr>
+        <tr><td>Explanation</td><td>Normal</td><td>Trusts context, skips what reader knows</td></tr>
+        <tr><td>Code</td><td>Normal</td><td>Just enough code</td></tr>
+        <tr><td>Token savings</td><td>~65%</td><td>~90%</td></tr>
+      </table>
+      <p style="font-size:0.75rem; color:var(--fg); margin-top:1.5rem;">
+        Laconic speech is not just brevity &mdash; it is the weaponization of implication.
+      </p>
+    </section>
+
+  </div>
+
+  <div id="tab-origin" class="tab-content">
+    <div id="origin-content"></div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/GabrielBarberini/laconic">GitHub</a> &middot; MIT &middot; Inspired by <a href="https://github.com/JuliusBrussee/caveman">caveman</a>
+  </footer>
+
+  <script>
+    function showTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav.tabs button').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.querySelector('nav.tabs button[onclick*="' + tab + '"]').classList.add('active');
+
+      if (tab === 'origin' && !document.getElementById('origin-content').innerHTML) {
+        fetch('origin.md')
+          .then(r => r.text())
+          .then(md => {
+            document.getElementById('origin-content').innerHTML = marked.parse(md);
+          });
+      }
+    }
+  </script>
+
+</body>
+</html>

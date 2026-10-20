@@ -1,0 +1,35 @@
+{
+  "name": "laconic",
+  "version": "0.1.0",
+  "description": "Brief prose. Short common words. Trust context. State what matters. Omit what reader can infer.",
+  "author": {
+    "name": "Gabriel Barberini",
+    "url": "https://github.com/GabrielBarberini"
+  },
+  "homepage": "https://github.com/GabrielBarberini/laconic",
+  "repository": "https://github.com/GabrielBarberini/laconic",
+  "license": "MIT",
+  "keywords": [
+    "productivity",
+    "communication",
+    "brevity",
+    "laconic",
+    "token-optimization"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Laconic",
+    "shortDescription": "Brief prose. Short common words. Trust context. State what matters. Omit what reader can infer.",
+    "longDescription": "Brief prose. Short common words. Trust context. State what matters. Omit what reader can infer.",
+    "developerName": "Gabriel Barberini",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "websiteURL": "https://github.com/GabrielBarberini/laconic",
+    "defaultPrompt": [
+      "Use laconic mode. Say less. Trust context. Short common words."
+    ],
+    "brandColor": "#1a1a2e"
+  }
+}

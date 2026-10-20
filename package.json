@@ -1,0 +1,42 @@
+{
+  "name": "tau-laconic",
+  "version": "1.3.0",
+  "description": "Fewer words, sharper thought. Trust context; say only what silence can't.",
+  "keywords": [
+    "pi-package",
+    "skill",
+    "extension",
+    "laconic",
+    "caveman",
+    "token-optimization",
+    "brevity"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Gabriel Barberini",
+    "url": "https://github.com/GabrielBarberini"
+  },
+  "homepage": "https://github.com/GabrielBarberini/laconic#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GabrielBarberini/laconic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GabrielBarberini/laconic/issues"
+  },
+  "files": [
+    "skills",
+    "extensions"
+  ],
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/laconic.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  }
+}

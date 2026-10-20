@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "laconic",
+      "description": "Fewer words, sharper thought. Trust context; say only what silence can't.",
+  "owner": {
+    "name": "Gabriel Barberini",
+    "url": "https://github.com/GabrielBarberini"
+  },
+  "plugins": [
+    {
+      "name": "laconic",
+  "description": "Fewer words, sharper thought. Trust context; say only what silence can't.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
